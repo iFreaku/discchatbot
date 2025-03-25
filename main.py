@@ -137,6 +137,7 @@ def handle_events(resp):
         
         if message.startswith(">clearmemory"):
             clear_log()
+            print("CLEARED!")
             return
 
 
