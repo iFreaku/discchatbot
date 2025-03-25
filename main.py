@@ -22,7 +22,7 @@ def log(message, user=None, file_path=r"static/logs.txt"):
     if msg.startswith("You"):
             msg = msg.replace('<@1352912120701784157>', '') + f", to {user}" + "\n"
     else:
-        msg = msg.replace('<@1352912120701784157>', 'to you, ') + "\n")
+        msg = msg.replace('<@1352912120701784157>', 'to you, ') + "\n"
     print(msg)
     with open(file_path, "a+", encoding="utf-8") as file:  # 🔥 Use UTF-8 encoding
         file.seek(0)
