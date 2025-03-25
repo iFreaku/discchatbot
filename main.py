@@ -137,11 +137,6 @@ def handle_events(resp):
             if isinstance(referenced_message, list) and referenced_message:
                 referenced_message = referenced_message[0]  # Access first element safely
                 referenced_author_id = referenced_message['author']['id']
-                
-                # Continue with your logic...
-            else:
-                print(f"Failed to fetch referenced message: {referenced_message}")
-                return  # Exit the function if the message doesn't exist
 
                 # Check if the referenced message is from the bot
                 if referenced_author_id == bot_user_id:
@@ -185,6 +180,9 @@ def handle_events(resp):
                         )
                         
                         return
+            else:
+                print(f"Failed to fetch referenced message: {referenced_message}")
+                return  # Exit the function if the message doesn't exist
 
         # Check if the message is in a DM or the bot is mentioned in a guild
         if guild_id is None:  # DM
