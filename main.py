@@ -135,7 +135,7 @@ def handle_events(resp):
         if user_id == bot_user_id:
             return
         
-        if message.startswith(">clearmemory"):
+        if content.startswith(">clearmemory"):
             clear_log()
             print("CLEARED!")
             return
