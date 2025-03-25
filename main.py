@@ -51,7 +51,7 @@ def create(msg):
 
     image_response = requests.get(image_url)
     if image_response.status_code == 200:
-        file_path = r"generated_image.jpg"
+        file_path = r"static/generate.png"
         with open(file_path, "wb") as file:
             file.write(image_response.content)
         print(f"Image saved as {file_path}")
