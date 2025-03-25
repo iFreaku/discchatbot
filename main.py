@@ -100,6 +100,7 @@ def handle_events(resp):
         print(f"Logged in as {user['username']}#{user['discriminator']}")
 
     # Check for new messages
+    
     if resp.event.message:
         message = resp.parsed.auto()
         guild_id = message.get('guild_id')  # Guild ID (None for DMs)
@@ -130,9 +131,17 @@ def handle_events(resp):
 
             # Fetch the referenced message
             referenced_message = bot.getMessage(referenced_channel_id, referenced_message_id).json()
-            if referenced_message:  # Check if the message exists
-                referenced_message = referenced_message[0]  # Access the first element of the list
+            referenced_message = bot.getMessage(referenced_channel_id, referenced_message_id).json()
+
+            # Ensure referenced_message is a list and not empty
+            if isinstance(referenced_message, list) and referenced_message:
+                referenced_message = referenced_message[0]  # Access first element safely
                 referenced_author_id = referenced_message['author']['id']
+                
+                # Continue with your logic...
+            else:
+                print(f"Failed to fetch referenced message: {referenced_message}")
+                return  # Exit the function if the message doesn't exist
 
                 # Check if the referenced message is from the bot
                 if referenced_author_id == bot_user_id:
