@@ -80,7 +80,7 @@ def generate_response(message, user):
 """
     response = together_client.chat.completions.create(
         model="meta-llama/Llama-3.3-70B-Instruct-Turbo-Free",#"meta-llama/Llama-Vision-Free",
-        messages=[{"role": "user", "content": f"{user} said {message.replace('<@1352912120701784157>', 'to you, ')}, {charc}"}],
+        messages=[{"role": "user", "content": f"{user} said {message.replace('<@1352912120701784157>', 'to you, ')} ({charc})"}],
     )
     print(sum)
     return response.choices[0].message.content
