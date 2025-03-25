@@ -190,7 +190,7 @@ def handle_events(resp):
             return
         else:
             if f"<@{bot_user_id}>" in content:
-                if "generate an image" in content or "image" in content":
+                if "generate an image" in content or "image" in content:
                     start_typing(channel_id)
                     # Generate a response using Together API
                     response = create(content)
