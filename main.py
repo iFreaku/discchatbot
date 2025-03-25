@@ -18,11 +18,13 @@ def getlog(file_path=r"static/logs.txt"):
         return file.readlines()
 
 def log(message, user=None, file_path=r"static/logs.txt"):
-    msg = message.replace("trymebitch_28287", "You")
-    if msg.startswith("[You"):
-            msg = msg.replace('<@1352912120701784157>', '') + f", to {user}" + "\n"
+    msg = message.replace('<@1352912120701784157>', '')
+
+    if msg.startswith("You"):
+        msg = "[" + msg + f", to {user}]" + "\n"
     else:
-        msg = msg.replace('<@1352912120701784157>', 'to you, ') + "\n"
+        msg = f"[{user} said, " + msg + ", to you]" +"\n"
+
     print(msg)
     with open(file_path, "a+", encoding="utf-8") as file:  # 🔥 Use UTF-8 encoding
         file.seek(0)
@@ -126,7 +128,6 @@ def handle_events(resp):
 
         # Ignore messages sent by the bot itself
         if user_id == bot_user_id:
-            log(f"[{username} said {content}]", user=username)
             return
 
         # Check if the message is a reply to the bot's message
@@ -147,7 +148,8 @@ def handle_events(resp):
 
                     if "generate an image" in content or "image" in content:
                         response = create(content)
-                        log(f"[{username} said {content}]", user=username)
+                        log(f"{content}", user=username)
+                        log(f"You said, <@{user_id}> Here is your image", user=username)
                         bot.reply(
                             file=response,
                             channelID=channel_id,
@@ -156,7 +158,8 @@ def handle_events(resp):
                         )
                     else:
                         response = generate_response(content, username)
-                        log(f"[{username} said {content}]", user=username)
+                        log(f"{content}", user=username)
+                        log(f"You said, " + response, user=username)
                         bot.reply(
                             channelID=channel_id,
                             messageID=message_id,
@@ -174,7 +177,8 @@ def handle_events(resp):
             start_typing(channel_id)
             if f"generate an image" in content or "image" in content:
                 response = create(content)
-                log(f"[{username} said {content}]", user=username)
+                log(f"{content}", user=username)
+                log(f"You said, <@{user_id}> Here is your image", user=username)
                 # Mention the user and send the response
                 bot.reply(
                     file=response,
@@ -184,7 +188,8 @@ def handle_events(resp):
                 )
             else:
                 response = generate_response(content, username)
-                log(f"[{username} said {content}]", user=username)
+                log(f"{content}", user=username)
+                log(f"You said, " + response, user=username)
                 # Send the response
                 bot.sendMessage(channel_id, response)
             return
@@ -194,7 +199,8 @@ def handle_events(resp):
                     start_typing(channel_id)
                     # Generate a response using Together API
                     response = create(content)
-                    log(f"[{username} said {content}]", user=username)
+                    log(f"{content}", user=username)
+                    log(f"You said, <@{user_id}> Here is your image", user=username)
                     # Mention the user and send the response
                     bot.reply(
                         file=response,
@@ -207,7 +213,8 @@ def handle_events(resp):
                     start_typing(channel_id)
                     # Generate a response using Together API
                     response = generate_response(content, username)
-                    log(f"[{username} said {content}]", user=username)
+                    log(f"{content}", user=username)
+                    log(f"You said, " + response, user=username)
                     # Mention the user and send the response
                     bot.reply(
                         channelID=channel_id,
