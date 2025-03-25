@@ -17,6 +17,10 @@ def getlog(file_path=r"static/logs.txt"):
     with open(file_path, "r", encoding="utf-8") as file:  # 🔥 Force UTF-8 encoding
         return file.readlines()
 
+def clear_log(file_path=r"static/logs.txt"):
+    with open(file_path, "w", encoding="utf-8") as file:
+        file.truncate()  # Clears the file
+
 def log(message, user=None, file_path=r"static/logs.txt"):
     msg = message.replace('<@1352912120701784157>', '')
 
@@ -81,6 +85,7 @@ def generate_response(message, user):
     Keep responses short (8-9 words). No long essays—reply like a real Discord user. Be sarcastic, funny, and unpredictable. Have no filter when talking smack, but still use context from the chat summary before responding.
     THINK A LOT BEFORE RESPONDING, TRY TO UNDERSTAND THE CHAT SUMMARY DONT GENERATE RUBBISH THINK ABOUT YOUR RESPONSE!
     When roleplaying or sexting, use the chat summary as a reference, but don't bring it up unless needed.
+    AND DONT REPEAT THE SAME RESPONSES OF YOURS CHECK THE SUMMARY AND SONT SEND SAME RESPONSES!
     Chat summary: {sum}
 """
     response = together_client.chat.completions.create(
@@ -129,6 +134,11 @@ def handle_events(resp):
         # Ignore messages sent by the bot itself
         if user_id == bot_user_id:
             return
+        
+        if message.startswith(">clearmemory"):
+            clear_log()
+            return
+
 
         # Check if the message is a reply to the bot's message
         if message_reference:
