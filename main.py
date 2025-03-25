@@ -17,12 +17,12 @@ def getlog(file_path=r"static/logs.txt"):
     with open(file_path, "r", encoding="utf-8") as file:  # 🔥 Force UTF-8 encoding
         return file.readlines()
 
-def log(message, file_path=r"static/logs.txt", user=""):
+def log(message, file_path=r"static/logs.txt", user=None):
     with open(file_path, "a+", encoding="utf-8") as file:  # 🔥 Use UTF-8 encoding
         file.seek(0)
         lines = file.readlines()
         if message.startswith("trymebitch_28287"):
-            lines.append(message.replace("trymebitch_28287", "you").replace('<@1352912120701784157>', '')+ f"to {user}" + "\n")
+            lines.append(message.replace("trymebitch_28287", "you").replace('<@1352912120701784157>', '')+ f", to {user}" + "\n")
         else:
             lines.append(message.replace("trymebitch_28287", "you").replace('<@1352912120701784157>', 'to you, ') + "\n")
         if len(lines) > 10:
@@ -135,29 +135,16 @@ def handle_events(resp):
             # Fetch the referenced message
             referenced_message = bot.getMessage(referenced_channel_id, referenced_message_id).json()
 
-            # Ensure referenced_message is a list and not empty
             if isinstance(referenced_message, list) and referenced_message:
-                referenced_message = referenced_message[0]  # Access first element safely
+                referenced_message = referenced_message[0]
                 referenced_author_id = referenced_message['author']['id']
 
-                # Check if the referenced message is from the bot
                 if referenced_author_id == bot_user_id:
-                    # Start typing indicator
                     start_typing(channel_id)
-                    if f"generate an image" in content:
+
+                    if "generate an image" in content or "image" in content:
                         response = create(content)
                         log(f"[{username} said {content}]", user=username)
-                        # Mention the user and send the response
-                        bot.reply(
-                            file=response,
-                            channelID=channel_id,
-                            messageID=message_id,
-                            message=f"<@{user_id}> Here is your image:"
-                        )
-                    elif f"image" in content:
-                        response = create(content)
-                        log(f"[{username} said {content}]", user=username)
-                        # Mention the user and send the response
                         bot.reply(
                             file=response,
                             channelID=channel_id,
@@ -167,40 +154,22 @@ def handle_events(resp):
                     else:
                         response = generate_response(content, username)
                         log(f"[{username} said {content}]", user=username)
-                        # Send the response
                         bot.reply(
                             channelID=channel_id,
-                            messageID=message_id,  # The message being replied to
-                            message=response,
-                            nonce="calculate",  # Auto-generate nonce
-                            tts=False,
-                            embed=None,
-                            allowed_mentions={"parse": ["users"]},
-                            sticker_ids=None,
-                            file=None,
-                            isurl=False
+                            messageID=message_id,
+                            message=response
                         )
-                        
-                        return
-            else:
-                print(f"Failed to fetch referenced message: {referenced_message}")
-                return  # Exit the function if the message doesn't exist
+                    
+                    return  # 🔥 PREVENTS DUPLICATE REPLY
+
+            return  # Exit early if reference check fails
+
 
         # Check if the message is in a DM or the bot is mentioned in a guild
         if guild_id is None:  # DM
             # Start typing indicator
             start_typing(channel_id)
-            if f"generate an image" in content:
-                response = create(content)
-                log(f"[{username} said {content}]", user=username)
-                # Mention the user and send the response
-                bot.reply(
-                    file=response,
-                    channelID=channel_id,
-                    messageID=message_id,
-                    message=f"<@{user_id}> Here is your image:"
-                )
-            elif f"image" in content:
+            if f"generate an image" in content or "image" in content:
                 response = create(content)
                 log(f"[{username} said {content}]", user=username)
                 # Mention the user and send the response
@@ -215,6 +184,7 @@ def handle_events(resp):
                 log(f"[{username} said {content}]", user=username)
                 # Send the response
                 bot.sendMessage(channel_id, response)
+
         elif f"<@{bot_user_id}>" in content and "generate an image" in content:
             start_typing(channel_id)
             # Generate a response using Together API
