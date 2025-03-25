@@ -17,14 +17,17 @@ def getlog(file_path=r"static/logs.txt"):
     with open(file_path, "r", encoding="utf-8") as file:  # 🔥 Force UTF-8 encoding
         return file.readlines()
 
-def log(message, file_path=r"static/logs.txt", user=None):
+def log(message, user=None, file_path=r"static/logs.txt"):
+    msg = message.replace("trymebitch_28287", "You")
+    if msg.startswith("You"):
+            msg = msg.replace('<@1352912120701784157>', '') + f", to {user}" + "\n"
+    else:
+        msg = msg.replace('<@1352912120701784157>', 'to you, ') + "\n")
+    print(msg)
     with open(file_path, "a+", encoding="utf-8") as file:  # 🔥 Use UTF-8 encoding
         file.seek(0)
         lines = file.readlines()
-        if message.startswith("trymebitch_28287"):
-            lines.append(message.replace("trymebitch_28287", "you").replace('<@1352912120701784157>', '')+ f", to {user}" + "\n")
-        else:
-            lines.append(message.replace("trymebitch_28287", "you").replace('<@1352912120701784157>', 'to you, ') + "\n")
+        lines.append(msg)
         if len(lines) > 10:
             lines = lines[-10:]  
         file.seek(0)
