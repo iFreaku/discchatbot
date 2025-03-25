@@ -13,11 +13,11 @@ keep_alive.keep_alive()
 bot = discum.Client(token=tk, log=False)
 together_client = Together(api_key=key)
 
-def getlog(file_path=r"logs.txt"):
+def getlog(file_path=r"static/logs.txt"):
     with open(file_path, "r", encoding="utf-8") as file:  # 🔥 Force UTF-8 encoding
         return file.readlines()
 
-def log(message, file_path=r"logs.txt"):
+def log(message, file_path=r"static/logs.txt"):
     with open(file_path, "a+", encoding="utf-8") as file:  # 🔥 Use UTF-8 encoding
         file.seek(0)
         lines = file.readlines()
