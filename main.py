@@ -131,7 +131,6 @@ def handle_events(resp):
 
             # Fetch the referenced message
             referenced_message = bot.getMessage(referenced_channel_id, referenced_message_id).json()
-            referenced_message = bot.getMessage(referenced_channel_id, referenced_message_id).json()
 
             # Ensure referenced_message is a list and not empty
             if isinstance(referenced_message, list) and referenced_message:
