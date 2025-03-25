@@ -17,7 +17,7 @@ def getlog(file_path=r"static/logs.txt"):
     with open(file_path, "r", encoding="utf-8") as file:  # 🔥 Force UTF-8 encoding
         return file.readlines()
 
-def log(user="", message, file_path=r"static/logs.txt"):
+def log(message, file_path=r"static/logs.txt", user=""):
     with open(file_path, "a+", encoding="utf-8") as file:  # 🔥 Use UTF-8 encoding
         file.seek(0)
         lines = file.readlines()
@@ -123,7 +123,7 @@ def handle_events(resp):
 
         # Ignore messages sent by the bot itself
         if user_id == bot_user_id:
-            log(username, f"[{username} said {content}]")
+            log(f"[{username} said {content}]", user=username)
             return
 
         # Check if the message is a reply to the bot's message
@@ -146,7 +146,7 @@ def handle_events(resp):
                     start_typing(channel_id)
                     if f"generate an image" in content:
                         response = create(content)
-                        log(username, f"[{username} said {content}]")
+                        log(f"[{username} said {content}]", user=username)
                         # Mention the user and send the response
                         bot.reply(
                             file=response,
@@ -156,7 +156,7 @@ def handle_events(resp):
                         )
                     elif f"image" in content:
                         response = create(content)
-                        log(username, f"[{username} said {content}]")
+                        log(f"[{username} said {content}]", user=username)
                         # Mention the user and send the response
                         bot.reply(
                             file=response,
@@ -166,7 +166,7 @@ def handle_events(resp):
                         )
                     else:
                         response = generate_response(content, username)
-                        log(username, f"[{username} said {content}]")
+                        log(f"[{username} said {content}]", user=username)
                         # Send the response
                         bot.reply(
                             channelID=channel_id,
@@ -192,7 +192,7 @@ def handle_events(resp):
             start_typing(channel_id)
             if f"generate an image" in content:
                 response = create(content)
-                log(username, f"[{username} said {content}]")
+                log(f"[{username} said {content}]", user=username)
                 # Mention the user and send the response
                 bot.reply(
                     file=response,
@@ -202,7 +202,7 @@ def handle_events(resp):
                 )
             elif f"image" in content:
                 response = create(content)
-                log(username, f"[{username} said {content}]")
+                log(f"[{username} said {content}]", user=username)
                 # Mention the user and send the response
                 bot.reply(
                     file=response,
@@ -212,14 +212,14 @@ def handle_events(resp):
                 )
             else:
                 response = generate_response(content, username)
-                log(username, f"[{username} said {content}]")
+                log(f"[{username} said {content}]", user=username)
                 # Send the response
                 bot.sendMessage(channel_id, response)
         elif f"<@{bot_user_id}>" in content and "generate an image" in content:
             start_typing(channel_id)
             # Generate a response using Together API
             response = create(content)
-            log(username, f"[{username} said {content}]")
+            log(f"[{username} said {content}]", user=username)
             # Mention the user and send the response
             bot.reply(
                 file=response,
@@ -231,7 +231,7 @@ def handle_events(resp):
             start_typing(channel_id)
             # Generate a response using Together API
             response = create(content)
-            log(username, f"[{username} said {content}]")
+            log(f"[{username} said {content}]", user=username)
             # Mention the user and send the response
             bot.reply(
                 file=response,
@@ -244,7 +244,7 @@ def handle_events(resp):
             start_typing(channel_id)
             # Generate a response using Together API
             response = generate_response(content, username)
-            log(username, f"[{username} said {content}]")
+            log(f"[{username} said {content}]", user=username)
             # Mention the user and send the response
             bot.reply(
                 channelID=channel_id,
