@@ -19,7 +19,7 @@ def getlog(file_path=r"static/logs.txt"):
 
 def log(message, user=None, file_path=r"static/logs.txt"):
     msg = message.replace("trymebitch_28287", "You")
-    if msg.startswith("You"):
+    if msg.startswith("[You"):
             msg = msg.replace('<@1352912120701784157>', '') + f", to {user}" + "\n"
     else:
         msg = msg.replace('<@1352912120701784157>', 'to you, ') + "\n"
@@ -187,50 +187,41 @@ def handle_events(resp):
                 log(f"[{username} said {content}]", user=username)
                 # Send the response
                 bot.sendMessage(channel_id, response)
-
-        elif f"<@{bot_user_id}>" in content and "generate an image" in content:
-            start_typing(channel_id)
-            # Generate a response using Together API
-            response = create(content)
-            log(f"[{username} said {content}]", user=username)
-            # Mention the user and send the response
-            bot.reply(
-                file=response,
-                channelID=channel_id,
-                messageID=message_id,
-                message=f"<@{user_id}> Here is your image:"
-            )
-        elif f"<@{bot_user_id}>" in content and "image" in content:
-            start_typing(channel_id)
-            # Generate a response using Together API
-            response = create(content)
-            log(f"[{username} said {content}]", user=username)
-            # Mention the user and send the response
-            bot.reply(
-                file=response,
-                channelID=channel_id,
-                messageID=message_id,
-                message=f"<@{user_id}> Here is your image:"
-            )
-        elif f"<@{bot_user_id}>" in content:  # Mentioned in a guild
-            # Start typing indicator
-            start_typing(channel_id)
-            # Generate a response using Together API
-            response = generate_response(content, username)
-            log(f"[{username} said {content}]", user=username)
-            # Mention the user and send the response
-            bot.reply(
-                channelID=channel_id,
-                messageID=message_id,  # The message being replied to
-                message=response,
-                nonce="calculate",  # Auto-generate nonce
-                tts=False,
-                embed=None,
-                allowed_mentions={"parse": ["users"]},
-                sticker_ids=None,
-                file=None,
-                isurl=False
-            )
+            return
+        else:
+            if f"<@{bot_user_id}>" in content:
+                if "generate an image" in content or "image" in content":
+                    start_typing(channel_id)
+                    # Generate a response using Together API
+                    response = create(content)
+                    log(f"[{username} said {content}]", user=username)
+                    # Mention the user and send the response
+                    bot.reply(
+                        file=response,
+                        channelID=channel_id,
+                        messageID=message_id,
+                        message=f"<@{user_id}> Here is your image:"
+                    )
+                else:  # Mentioned in a guild
+                    # Start typing indicator
+                    start_typing(channel_id)
+                    # Generate a response using Together API
+                    response = generate_response(content, username)
+                    log(f"[{username} said {content}]", user=username)
+                    # Mention the user and send the response
+                    bot.reply(
+                        channelID=channel_id,
+                        messageID=message_id,  # The message being replied to
+                        message=response,
+                        nonce="calculate",  # Auto-generate nonce
+                        tts=False,
+                        embed=None,
+                        allowed_mentions={"parse": ["users"]},
+                        sticker_ids=None,
+                        file=None,
+                        isurl=False
+                    )
+                return
 
 # Run the bot gateway
 bot.gateway.run(auto_reconnect=True)
