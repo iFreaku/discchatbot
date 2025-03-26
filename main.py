@@ -166,7 +166,6 @@ def handle_events(resp):
                 channelID=channel_id,
                 messageID=message_id,
                 message=f"⏰ **Uptime:** `{uptime}`\n"
-                        f"📊 **Messages Processed:** `{len(getlog())}`"
             )
             return
 
