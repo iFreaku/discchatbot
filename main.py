@@ -24,12 +24,12 @@ def get_uptime():
     
     uptime_str = ""
     if days > 0:
-        uptime_str += f"{days}d "
+        uptime_str += f"{days}D "
     if hours > 0:
-        uptime_str += f"{hours}h "
+        uptime_str += f"{hours}H "
     if minutes > 0:
-        uptime_str += f"{minutes}m "
-    uptime_str += f"{seconds}s"
+        uptime_str += f"{minutes}M "
+    uptime_str += f"{seconds}S"
     
     return uptime_str
 
@@ -66,6 +66,31 @@ def ai(msg):
         messages=[{"role": "assistant", "content": f"{msg}"}],
     )
     return response.choices[0].message.content
+
+def up():
+    prompt = ai(f"the text ' {get_uptime()} ' in center, (any font style, any background or setting that you might think would be best here) (dont respnd with anything else other than the image gen prompt, you can even lightly imporve the prompt, just little subtle changes.)")
+    response = together_client.images.generate(
+        prompt=prompt,
+        model="black-forest-labs/FLUX.1-schnell-Free",
+        steps=4,
+        n=1,
+        height = 1792,
+        width = 240,
+        negative_prompt=""
+    )
+
+    image_url = response.data[0].url
+
+    image_response = requests.get(image_url)
+    if image_response.status_code == 200:
+        file_path = r"static/generate.png"
+        with open(file_path, "wb") as file:
+            file.write(image_response.content)
+        print(f"Image saved as {file_path}")
+    else:
+        print("Failed to download the image.")
+
+    return file_path
 
 def create(msg):
     prompt = ai(f"Extract the image generation prompt from this {msg}. (asking you to extract the prompt that must be asking for generating an image, dont respnd with anything else other than the image gen prompt, you can even lightly imporve the prompt, just little subtle changes.)")
@@ -161,11 +186,12 @@ def handle_events(resp):
             return
         
         if content.startswith(">up"):
-            uptime = get_uptime()
+            uptime = up()
             bot.reply(
                 channelID=channel_id,
                 messageID=message_id,
-                message=f"⏰ **Uptime:** `{uptime}`\n"
+                message=f"⏰ **Uptime:**",
+                file=uptime 
             )
             return
 
