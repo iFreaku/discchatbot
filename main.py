@@ -12,6 +12,26 @@ keep_alive.keep_alive()
 
 bot = discum.Client(token=tk, log=False)
 together_client = Together(api_key=key)
+bot_start_time = time.time()
+
+def get_uptime():
+    uptime_seconds = int(time.time() - bot_start_time)
+    
+    days = uptime_seconds // 86400
+    hours = (uptime_seconds % 86400) // 3600
+    minutes = (uptime_seconds % 3600) // 60
+    seconds = uptime_seconds % 60
+    
+    uptime_str = ""
+    if days > 0:
+        uptime_str += f"{days}d "
+    if hours > 0:
+        uptime_str += f"{hours}h "
+    if minutes > 0:
+        uptime_str += f"{minutes}m "
+    uptime_str += f"{seconds}s"
+    
+    return uptime_str
 
 def getlog(file_path=r"static/logs.txt"):
     with open(file_path, "r", encoding="utf-8") as file:  # 🔥 Force UTF-8 encoding
@@ -138,6 +158,16 @@ def handle_events(resp):
         if content.startswith(">clearmemory"):
             clear_log()
             print("CLEARED!")
+            return
+        
+        if content.startswith(">up"):
+            uptime = get_uptime()
+            bot.reply(
+                channelID=channel_id,
+                messageID=message_id,
+                message=f"⏰ **Uptime:** `{uptime}`\n"
+                        f"📊 **Messages Processed:** `{len(getlog())}`"
+            )
             return
 
 
