@@ -68,7 +68,7 @@ def ai(msg):
     return response.choices[0].message.content
 
 def up():
-    promp = ai(f"the text ' {get_uptime()} ' in center, (any font style, any background or setting that you might think would be best here) (dont respnd with anything else other than the image gen prompt, you can even lightly imporve the prompt, just little subtle changes.)")
+    promp = f"the text ' {get_uptime()} ' in center, (any font style, any background or setting that you might think would be best here)"
     response = together_client.images.generate(
         prompt=promp,
         model="black-forest-labs/FLUX.1-schnell-Free",
