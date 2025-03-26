@@ -74,8 +74,8 @@ def up():
         model="black-forest-labs/FLUX.1-schnell-Free",
         steps=4,
         n=1,
-        height = 1792,
-        width = 240,
+        height = 240,
+        width = 1792,
         negative_prompt=""
     )
 
