@@ -386,7 +386,7 @@ def handle_events(resp):
                     log(f"{content}", user=username)
                     log(f"You said, " + response, user=username)
                     # Mention the user and send the response directly
-                    bot.sendMessage(channel_id, response)
+                    bot.reply(channelID=channel_id, messageID=message_id, message=response)
                 return
 
 # Run the bot gateway
