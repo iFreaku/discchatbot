@@ -208,9 +208,11 @@ def handle_events(resp):
             referenced_message_id = message_reference['message_id']
             referenced_channel_id = message_reference['channel_id']
             referenced_guild_id = message_reference.get('guild_id')
-
-            # Fetch the referenced message
+            
+            # Get the actual content of the message being replied to
             referenced_message = bot.getMessage(referenced_channel_id, referenced_message_id).json()
+            referenced_content = referenced_message[0]['content'] if isinstance(referenced_message, list) else ''
+            print(referenced_content)
 
             if isinstance(referenced_message, list) and referenced_message:
                 referenced_message = referenced_message[0]
@@ -230,8 +232,8 @@ def handle_events(resp):
                             message=f"<@{user_id}> Here is your image:"
                         )
                     else:
-                        response = generate_response(content, username)
-                        log(f"{content}", user=username)
+                        response = generate_response(f" {content} Replying to the message: {referenced_content} ", username)
+                        log(f"{content} Replying to the message: {referenced_content} ", user=username)
                         log(f"You said, " + response, user=username)
                         bot.reply(
                             channelID=channel_id,
