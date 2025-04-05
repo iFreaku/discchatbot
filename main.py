@@ -222,25 +222,52 @@ def handle_events(resp):
         unit = ''.join(filter(str.isalpha, interval.lower()))[0]
         return value * units.get(unit, 1)
     
+    # Message queue for tasks and regular messages
+    message_queue = []
+    message_lock = threading.Lock()
+
+    def process_message_queue():
+        while True:
+            try:
+                with message_lock:
+                    if message_queue:
+                        msg_data = message_queue.pop(0)
+                        channel_id = msg_data['channel_id']
+                        content = msg_data['content']
+                        bot.sendMessage(channel_id, content)
+                time.sleep(0.5)  # Add delay between messages
+            except Exception as e:
+                print(f"Message queue error: {e}")
+                time.sleep(1)
+
+    # Start message queue processor
+    queue_thread = threading.Thread(target=process_message_queue, daemon=True)
+    queue_thread.start()
+
     # Execute scheduled tasks
     def execute_tasks():
         while True:
-            tasks = load_tasks()
-            current_time = time.time()
-            
-            for task in tasks['tasks']:
-                if current_time - task.get('last_run', 0) >= task['interval_seconds']:
-                    channel_id = task['channel_id']
-                    command = task['cmd']
-                    
-                    # Execute the command
-                    bot.sendMessage(channel_id, command)
-                    
-                    # Update last run time
-                    task['last_run'] = current_time
-                    save_tasks(tasks)
-            
-            time.sleep(1)
+            try:
+                tasks = load_tasks()
+                current_time = time.time()
+                
+                for task in tasks['tasks']:
+                    if current_time - task.get('last_run', 0) >= task['interval_seconds']:
+                        # Update last run time FIRST to prevent duplicates
+                        task['last_run'] = current_time
+                        save_tasks(tasks)
+                        
+                        # Add task message to queue
+                        with message_lock:
+                            message_queue.append({
+                                'channel_id': task['channel_id'],
+                                'content': task['cmd']
+                            })
+                        
+                        time.sleep(0.1)  # Small delay between task checks
+            except Exception as e:
+                print(f"Task scheduler error: {e}")
+                time.sleep(1)
     
     # Start task execution thread
     task_thread = threading.Thread(target=execute_tasks, daemon=True)
@@ -339,21 +366,23 @@ def handle_events(resp):
                         response = create(content)
                         log(f"{content}", user=username)
                         log(f"You said, <@{user_id}> Here is your image", user=username)
-                        bot.reply(
-                            file=response,
-                            channelID=channel_id,
-                            messageID=message_id,
-                            message=f"<@{user_id}> Here is your image:"
-                        )
+                        with message_lock:
+                            bot.reply(
+                                file=response,
+                                channelID=channel_id,
+                                messageID=message_id,
+                                message=f"<@{user_id}> Here is your image:"
+                            )
                     else:
                         response = generate_response(f" {content}, Replying to the message: {referenced_content}, said by {referenced_message['author']['username']} ", username)
                         log(f"{content}, Replying to the message: {referenced_content}, said by {referenced_message['author']['username']} ", user=username)
                         log(f"You said, " + response, user=username)
-                        bot.reply(
-                            channelID=channel_id,
-                            messageID=message_id,
-                            message=response
-                        )
+                        with message_lock:
+                            bot.reply(
+                                channelID=channel_id,
+                                messageID=message_id,
+                                message=response
+                            )
                     
                     return  # 🔥 PREVENTS DUPLICATE REPLY
 
@@ -369,18 +398,23 @@ def handle_events(resp):
                 log(f"{content}", user=username)
                 log(f"You said, <@{user_id}> Here is your image", user=username)
                 # Mention the user and send the response
-                bot.reply(
-                    file=response,
-                    channelID=channel_id,
-                    messageID=message_id,
-                    message=f"<@{user_id}> Here is your image:"
-                )
+                with message_lock:
+                    bot.reply(
+                        file=response,
+                        channelID=channel_id,
+                        messageID=message_id,
+                        message=f"<@{user_id}> Here is your image:"
+                    )
             else:
                 response = generate_response(content, username)
                 log(f"{content}", user=username)
                 log(f"You said, " + response, user=username)
                 # Send the response
-                bot.sendMessage(channel_id, response)
+                with message_lock:
+                    message_queue.append({
+                        'channel_id': channel_id,
+                        'content': response
+                    })
             return
         else:
             if f"<@{bot_user_id}>" in content:
@@ -391,12 +425,13 @@ def handle_events(resp):
                     log(f"{content}", user=username)
                     log(f"You said, <@{user_id}> Here is your image", user=username)
                     # Mention the user and send the response
-                    bot.reply(
-                        file=response,
-                        channelID=channel_id,
-                        messageID=message_id,
-                        message=f"<@{user_id}> Here is your image:"
-                    )
+                    with message_lock:
+                        bot.reply(
+                            file=response,
+                            channelID=channel_id,
+                            messageID=message_id,
+                            message=f"<@{user_id}> Here is your image:"
+                        )
                 else:  # Mentioned in a guild
                     # Start typing indicator
                     start_typing(channel_id)
@@ -405,18 +440,11 @@ def handle_events(resp):
                     log(f"{content}", user=username)
                     log(f"You said, " + response, user=username)
                     # Mention the user and send the response
-                    bot.reply(
-                        channelID=channel_id,
-                        messageID=message_id,  # The message being replied to
-                        message=response,
-                        nonce="calculate",  # Auto-generate nonce
-                        tts=False,
-                        embed=None,
-                        allowed_mentions={"parse": ["users"]},
-                        sticker_ids=None,
-                        file=None,
-                        isurl=False
-                    )
+                    with message_lock:
+                        message_queue.append({
+                            'channel_id': channel_id,
+                            'content': response
+                        })
                 return
 
 # Run the bot gateway
