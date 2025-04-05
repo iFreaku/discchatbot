@@ -4,6 +4,9 @@ import requests
 from together import Together
 import os
 import keep_alive
+import json
+import threading
+from datetime import datetime, timedelta
 
 tk = os.getenv("token")
 key = os.getenv("key")
@@ -166,6 +169,55 @@ def handle_events(resp):
 
     # Check for new messages
     
+    # Load tasks from JSON file
+    def load_tasks(file_path=r"static/tasks.json"):
+        try:
+            with open(file_path, "r") as file:
+                return json.load(file)
+        except FileNotFoundError:
+            return {"tasks": []}
+    
+    # Save tasks to JSON file
+    def save_tasks(tasks, file_path=r"static/tasks.json"):
+        with open(file_path, "w") as file:
+            json.dump(tasks, file, indent=4)
+    
+    # Convert time string to seconds
+    def parse_time_interval(interval):
+        units = {
+            's': 1,
+            'm': 60,
+            'h': 3600,
+            'd': 86400
+        }
+        value = int(''.join(filter(str.isdigit, interval)))
+        unit = ''.join(filter(str.isalpha, interval.lower()))[0]
+        return value * units.get(unit, 1)
+    
+    # Execute scheduled tasks
+    def execute_tasks():
+        while True:
+            tasks = load_tasks()
+            current_time = time.time()
+            
+            for task in tasks['tasks']:
+                if current_time - task.get('last_run', 0) >= task['interval_seconds']:
+                    channel_id = task['channel_id']
+                    command = task['cmd']
+                    
+                    # Execute the command
+                    bot.sendMessage(channel_id, command)
+                    
+                    # Update last run time
+                    task['last_run'] = current_time
+                    save_tasks(tasks)
+            
+            time.sleep(1)
+    
+    # Start task execution thread
+    task_thread = threading.Thread(target=execute_tasks, daemon=True)
+    task_thread.start()
+
     if resp.event.message:
         message = resp.parsed.auto()
         guild_id = message.get('guild_id')  # Guild ID (None for DMs)
@@ -200,6 +252,39 @@ def handle_events(resp):
                 message=f"⏰ **Uptime:**",
                 file=uptime 
             )
+            return
+        
+        if content.startswith(">task") and user_id == "867447725230784552":
+            try:
+                # Parse command parameters
+                params = dict(param.split(":") for param in content.split()[1:])
+                cmd = params.get("cmd", "")
+                channel_id = params.get("channel", "")
+                interval = params.get("time", "")
+                
+                if not all([cmd, channel_id, interval]):
+                    bot.sendMessage(channel_id, "❌ Invalid command format! Use >task cmd:(command) channel:(id) time:(interval)")
+                    return
+                
+                # Load existing tasks
+                tasks = load_tasks()
+                
+                # Create new task
+                new_task = {
+                    "cmd": cmd,
+                    "channel_id": channel_id,
+                    "interval": interval,
+                    "interval_seconds": parse_time_interval(interval),
+                    "last_run": time.time()
+                }
+                
+                # Add task to list
+                tasks['tasks'].append(new_task)
+                save_tasks(tasks)
+                
+                bot.sendMessage(channel_id, f"✅ Task scheduled! Command: {cmd}, Interval: {interval}")
+            except Exception as e:
+                bot.sendMessage(channel_id, f"❌ Error creating task: {str(e)}")
             return
 
 
@@ -307,3 +392,4 @@ def handle_events(resp):
 
 # Run the bot gateway
 bot.gateway.run(auto_reconnect=True)
+
