@@ -256,6 +256,7 @@ def handle_events(resp):
         
         if content.startswith(">task") and user_id == "867447725230784552":
             try:
+                start_typing(channel_id)
                 # Parse command parameters
                 params = dict(param.split(":") for param in content.split()[1:])
                 cmd = params.get("cmd", "")
