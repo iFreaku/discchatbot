@@ -170,12 +170,40 @@ def handle_events(resp):
     # Check for new messages
     
     # Load tasks from JSON file
+    # In load_tasks function
     def load_tasks(file_path=r"static/tasks.json"):
         try:
             with open(file_path, "r") as file:
-                return json.load(file)
-        except FileNotFoundError:
+                content = file.read()
+                if not content.strip():
+                    return {"tasks": []}
+                return json.loads(content)
+        except (FileNotFoundError, json.JSONDecodeError):
             return {"tasks": []}
+    
+    # In execute_tasks function
+    def execute_tasks():
+        while True:
+            try:
+                tasks = load_tasks()
+                current_time = time.time()
+                
+                for task in tasks['tasks']:
+                    if current_time - task.get('last_run', 0) >= task['interval_seconds']:
+                        channel_id = task['channel_id']
+                        command = task['cmd']
+                        
+                        # Update last run time FIRST to prevent duplicates
+                        task['last_run'] = current_time
+                        save_tasks(tasks)
+                        
+                        # Then execute the command
+                        bot.sendMessage(channel_id, command)
+                    
+                        time.sleep(10)  # Increased from 1s to 10s to reduce frequency
+            except Exception as e:
+                print(f"Task scheduler error: {e}")
+                time.sleep(5)
     
     # Save tasks to JSON file
     def save_tasks(tasks, file_path=r"static/tasks.json"):
@@ -270,23 +298,20 @@ def handle_events(resp):
                 # Load existing tasks
                 tasks = load_tasks()
                 
-                # Execute the command immediately
-                bot.sendMessage(channel_id, cmd)
-                
-                # Create new task
+                # Create new task with initial last_run set to epoch
                 new_task = {
                     "cmd": cmd,
                     "channel_id": channel_id,
                     "interval": interval,
                     "interval_seconds": parse_time_interval(interval),
-                    "last_run": time.time()  # Set last_run to current time after execution
+                    "last_run": 0  # Initialize with 0 to trigger immediate execution
                 }
                 
                 # Add task to list
                 tasks['tasks'].append(new_task)
                 save_tasks(tasks)
                 
-                bot.sendMessage(channel_id, f"✅ Task executed and scheduled! Command: {cmd}, Interval: {interval}")
+                bot.sendMessage(channel_id, f"✅ Task scheduled! Command: {cmd} will run every {interval}")
             except Exception as e:
                 bot.sendMessage(channel_id, f"❌ Error creating task: {str(e)}")
             return
@@ -321,8 +346,8 @@ def handle_events(resp):
                             message=f"<@{user_id}> Here is your image:"
                         )
                     else:
-                        response = generate_response(f" {content}, Replying to the message: {referenced_content} said by {referenced_message['author']['username']} ", username)
-                        log(f"{content}, Replying to the message: {referenced_content} said by {referenced_message['author']['username']} ", user=username)
+                        response = generate_response(f" {content}, Replying to the message: {referenced_content}, said by {referenced_message['author']['username']} ", username)
+                        log(f"{content}, Replying to the message: {referenced_content}, said by {referenced_message['author']['username']} ", user=username)
                         log(f"You said, " + response, user=username)
                         bot.reply(
                             channelID=channel_id,
