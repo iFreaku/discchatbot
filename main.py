@@ -270,20 +270,23 @@ def handle_events(resp):
                 # Load existing tasks
                 tasks = load_tasks()
                 
+                # Execute the command immediately
+                bot.sendMessage(channel_id, cmd)
+                
                 # Create new task
                 new_task = {
                     "cmd": cmd,
                     "channel_id": channel_id,
                     "interval": interval,
                     "interval_seconds": parse_time_interval(interval),
-                    "last_run": time.time()
+                    "last_run": time.time()  # Set last_run to current time after execution
                 }
                 
                 # Add task to list
                 tasks['tasks'].append(new_task)
                 save_tasks(tasks)
                 
-                bot.sendMessage(channel_id, f"✅ Task scheduled! Command: {cmd}, Interval: {interval}")
+                bot.sendMessage(channel_id, f"✅ Task executed and scheduled! Command: {cmd}, Interval: {interval}")
             except Exception as e:
                 bot.sendMessage(channel_id, f"❌ Error creating task: {str(e)}")
             return
