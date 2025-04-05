@@ -7,7 +7,6 @@ import keep_alive
 
 tk = os.getenv("token")
 key = os.getenv("key")
-
 keep_alive.keep_alive()
 
 bot = discum.Client(token=tk, log=False)
