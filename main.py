@@ -48,7 +48,7 @@ def clear_log(file_path=r"static/logs.txt"):
 
 # Logs chat messages with proper formatting and maintains a 10-message history
 def log(message, user=None, file_path=r"static/logs.txt"):
-    msg = message.replace('<@1352912120701784157>', '')
+    msg = message.replace('<@1352912120701784157>', '').replace("chatwithmepls", "you")
 
     if msg.startswith("You"):
         msg = "[" + msg + f", to {user}]" + "\n"
@@ -321,8 +321,8 @@ def handle_events(resp):
                             message=f"<@{user_id}> Here is your image:"
                         )
                     else:
-                        response = generate_response(f" {content} Replying to the message: {referenced_content} ", username)
-                        log(f"{content} Replying to the message: {referenced_content} ", user=username)
+                        response = generate_response(f" {content}, Replying to the message: {referenced_content} said by {referenced_message['author']['username']} ", username)
+                        log(f"{content}, Replying to the message: {referenced_content} said by {referenced_message['author']['username']} ", user=username)
                         log(f"You said, " + response, user=username)
                         bot.reply(
                             channelID=channel_id,
