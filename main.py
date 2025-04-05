@@ -234,7 +234,14 @@ def handle_events(resp):
                         msg_data = message_queue.pop(0)
                         channel_id = msg_data['channel_id']
                         content = msg_data['content']
-                        bot.sendMessage(channel_id, content)
+                        try:
+                            bot.sendMessage(channel_id, content)
+                            print(f"Message sent successfully to channel {channel_id}")
+                        except Exception as send_error:
+                            print(f"Failed to send message: {send_error}")
+                            # Re-queue the message if it's high priority
+                            if msg_data.get('priority') == 'high':
+                                message_queue.append(msg_data)
                 time.sleep(0.5)  # Add delay between messages
             except Exception as e:
                 print(f"Message queue error: {e}")
@@ -257,14 +264,15 @@ def handle_events(resp):
                         task['last_run'] = current_time
                         save_tasks(tasks)
                         
-                        # Add task message to queue
+                        # Add task message to queue with high priority
                         with message_lock:
-                            message_queue.append({
+                            message_queue.insert(0, {
                                 'channel_id': task['channel_id'],
-                                'content': task['cmd']
+                                'content': task['cmd'],
+                                'priority': 'high'
                             })
                         
-                        time.sleep(0.1)  # Small delay between task checks
+                        time.sleep(1)  # Reduced delay between task checks
             except Exception as e:
                 print(f"Task scheduler error: {e}")
                 time.sleep(1)
