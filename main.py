@@ -14,6 +14,7 @@ bot = discum.Client(token=tk, log=False)
 together_client = Together(api_key=key)
 bot_start_time = time.time()
 
+# Calculates and formats the bot's uptime in days, hours, minutes, and seconds
 def get_uptime():
     uptime_seconds = int(time.time() - bot_start_time)
     
@@ -33,14 +34,17 @@ def get_uptime():
     
     return uptime_str
 
+# Retrieves the last 10 messages from the chat log file
 def getlog(file_path=r"static/logs.txt"):
     with open(file_path, "r", encoding="utf-8") as file:  # 🔥 Force UTF-8 encoding
         return file.readlines()
 
+# Clears all messages from the chat log file
 def clear_log(file_path=r"static/logs.txt"):
     with open(file_path, "w", encoding="utf-8") as file:
         file.truncate()  # Clears the file
 
+# Logs chat messages with proper formatting and maintains a 10-message history
 def log(message, user=None, file_path=r"static/logs.txt"):
     msg = message.replace('<@1352912120701784157>', '')
 
@@ -60,6 +64,7 @@ def log(message, user=None, file_path=r"static/logs.txt"):
         file.truncate()
         file.writelines(lines)
 
+# Generates AI responses using the Together API
 def ai(msg):
     response = together_client.chat.completions.create(
         model="meta-llama/Llama-3.3-70B-Instruct-Turbo-Free",
@@ -67,6 +72,7 @@ def ai(msg):
     )
     return response.choices[0].message.content
 
+# Generates an image displaying the bot's current uptime
 def up():
     promp = f"the text ' {get_uptime()} ' in center, (any font style, any background or setting that you might think would be best here)"
     response = together_client.images.generate(
@@ -92,6 +98,7 @@ def up():
 
     return file_path
 
+# Extracts and processes image generation prompts from user messages
 def create(msg):
     prompt = ai(f"Extract the image generation prompt from this {msg}. (asking you to extract the prompt that must be asking for generating an image, dont respnd with anything else other than the image gen prompt, you can even lightly imporve the prompt, just little subtle changes.)")
     response = together_client.images.generate(
