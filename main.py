@@ -323,23 +323,21 @@ def handle_events(resp):
                         response = create(content)
                         log(f"{content}", user=username)
                         log(f"You said, <@{user_id}> Here is your image", user=username)
-                        with message_lock:
-                            bot.reply(
-                                file=response,
-                                channelID=channel_id,
-                                messageID=message_id,
-                                message=f"<@{user_id}> Here is your image:"
-                            )
+                        bot.reply(
+                            file=response,
+                            channelID=channel_id,
+                            messageID=message_id,
+                            message=f"<@{user_id}> Here is your image:"
+                        )
                     else:
                         response = generate_response(f" {content}, Replying to the message: {referenced_content}, said by {referenced_message['author']['username']} ", username)
                         log(f"{content}, Replying to the message: {referenced_content}, said by {referenced_message['author']['username']} ", user=username)
                         log(f"You said, " + response, user=username)
-                        with message_lock:
-                            bot.reply(
-                                channelID=channel_id,
-                                messageID=message_id,
-                                message=response
-                            )
+                        bot.reply(
+                            channelID=channel_id,
+                            messageID=message_id,
+                            message=response
+                        )
                     
                     return  # 🔥 PREVENTS DUPLICATE REPLY
 
@@ -354,19 +352,16 @@ def handle_events(resp):
                 response = create(content)
                 log(f"{content}", user=username)
                 log(f"You said, <@{user_id}> Here is your image", user=username)
-                # Mention the user and send the response
-                with message_lock:
-                    bot.reply(
-                        file=response,
-                        channelID=channel_id,
-                        messageID=message_id,
-                        message=f"<@{user_id}> Here is your image:"
-                    )
+                bot.reply(
+                    file=response,
+                    channelID=channel_id,
+                    messageID=message_id,
+                    message=f"<@{user_id}> Here is your image:"
+                )
             else:
                 response = generate_response(content, username)
                 log(f"{content}", user=username)
                 log(f"You said, " + response, user=username)
-                # Send the response directly
                 bot.sendMessage(channel_id, response)
             return
         else:
@@ -377,14 +372,12 @@ def handle_events(resp):
                     response = create(content)
                     log(f"{content}", user=username)
                     log(f"You said, <@{user_id}> Here is your image", user=username)
-                    # Mention the user and send the response
-                    with message_lock:
-                        bot.reply(
-                            file=response,
-                            channelID=channel_id,
-                            messageID=message_id,
-                            message=f"<@{user_id}> Here is your image:"
-                        )
+                    bot.reply(
+                        file=response,
+                        channelID=channel_id,
+                        messageID=message_id,
+                        message=f"<@{user_id}> Here is your image:"
+                    )
                 else:  # Mentioned in a guild
                     # Start typing indicator
                     start_typing(channel_id)
