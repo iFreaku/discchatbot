@@ -181,7 +181,7 @@ def handle_events(resp):
         except (FileNotFoundError, json.JSONDecodeError):
             return {"tasks": []}
     
-    # In execute_tasks function
+    # Task execution function
     def execute_tasks():
         while True:
             try:
@@ -190,20 +190,21 @@ def handle_events(resp):
                 
                 for task in tasks['tasks']:
                     if current_time - task.get('last_run', 0) >= task['interval_seconds']:
-                        channel_id = task['channel_id']
-                        command = task['cmd']
+                        # Execute task directly
+                        try:
+                            bot.sendMessage(task['channel_id'], task['cmd'])
+                            print(f"Task executed successfully: {task['cmd']}")
+                            # Update last run time after successful execution
+                            task['last_run'] = current_time
+                            save_tasks(tasks)
+                        except Exception as e:
+                            print(f"Failed to execute task: {e}")
+                            continue
                         
-                        # Update last run time FIRST to prevent duplicates
-                        task['last_run'] = current_time
-                        save_tasks(tasks)
-                        
-                        # Then execute the command
-                        bot.sendMessage(channel_id, command)
-                    
-                        time.sleep(10)  # Increased from 1s to 10s to reduce frequency
+                time.sleep(1)  # Check tasks every second
             except Exception as e:
                 print(f"Task scheduler error: {e}")
-                time.sleep(5)
+                time.sleep(1)
     
     # Save tasks to JSON file
     def save_tasks(tasks, file_path=r"static/tasks.json"):
@@ -222,61 +223,9 @@ def handle_events(resp):
         unit = ''.join(filter(str.isalpha, interval.lower()))[0]
         return value * units.get(unit, 1)
     
-    # Message queue for tasks and regular messages
-    message_queue = []
-    message_lock = threading.Lock()
+    # Lock for task operations
+    task_lock = threading.Lock()
 
-    def process_message_queue():
-        while True:
-            try:
-                with message_lock:
-                    if message_queue:
-                        msg_data = message_queue.pop(0)
-                        channel_id = msg_data['channel_id']
-                        content = msg_data['content']
-                        try:
-                            bot.sendMessage(channel_id, content)
-                            print(f"Message sent successfully to channel {channel_id}")
-                        except Exception as send_error:
-                            print(f"Failed to send message: {send_error}")
-                            # Re-queue the message if it's high priority
-                            if msg_data.get('priority') == 'high':
-                                message_queue.append(msg_data)
-                time.sleep(0.5)  # Add delay between messages
-            except Exception as e:
-                print(f"Message queue error: {e}")
-                time.sleep(1)
-
-    # Start message queue processor
-    queue_thread = threading.Thread(target=process_message_queue, daemon=True)
-    queue_thread.start()
-
-    # Execute scheduled tasks
-    def execute_tasks():
-        while True:
-            try:
-                tasks = load_tasks()
-                current_time = time.time()
-                
-                for task in tasks['tasks']:
-                    if current_time - task.get('last_run', 0) >= task['interval_seconds']:
-                        # Update last run time FIRST to prevent duplicates
-                        task['last_run'] = current_time
-                        save_tasks(tasks)
-                        
-                        # Add task message to queue with high priority
-                        with message_lock:
-                            message_queue.insert(0, {
-                                'channel_id': task['channel_id'],
-                                'content': task['cmd'],
-                                'priority': 'high'
-                            })
-                        
-                        time.sleep(1)  # Reduced delay between task checks
-            except Exception as e:
-                print(f"Task scheduler error: {e}")
-                time.sleep(1)
-    
     # Start task execution thread
     task_thread = threading.Thread(target=execute_tasks, daemon=True)
     task_thread.start()
@@ -417,12 +366,8 @@ def handle_events(resp):
                 response = generate_response(content, username)
                 log(f"{content}", user=username)
                 log(f"You said, " + response, user=username)
-                # Send the response
-                with message_lock:
-                    message_queue.append({
-                        'channel_id': channel_id,
-                        'content': response
-                    })
+                # Send the response directly
+                bot.sendMessage(channel_id, response)
             return
         else:
             if f"<@{bot_user_id}>" in content:
@@ -447,12 +392,8 @@ def handle_events(resp):
                     response = generate_response(content, username)
                     log(f"{content}", user=username)
                     log(f"You said, " + response, user=username)
-                    # Mention the user and send the response
-                    with message_lock:
-                        message_queue.append({
-                            'channel_id': channel_id,
-                            'content': response
-                        })
+                    # Mention the user and send the response directly
+                    bot.sendMessage(channel_id, response)
                 return
 
 # Run the bot gateway
