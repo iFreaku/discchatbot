@@ -60,8 +60,8 @@ def log(message, user=None, file_path=r"static/logs.txt"):
         file.seek(0)
         lines = file.readlines()
         lines.append(msg)
-        if len(lines) > 10:
-            lines = lines[-10:]  
+        if len(lines) > 100:
+            lines = lines[-100:]  
         file.seek(0)
         file.truncate()
         file.writelines(lines)
