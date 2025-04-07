@@ -251,7 +251,7 @@ def handle_events(resp):
         if user_id == bot_user_id:
             return
         
-        if content.startswith(">clearmemory"):
+        if content.startswith(">clm"):
             clear_log()
             print("CLEARED!")
             return
