@@ -45,6 +45,14 @@ def getlog(file_path=r"static/logs.txt"):
 def clear_log(file_path=r"static/logs.txt"):
     with open(file_path, "w", encoding="utf-8") as file:
         file.truncate()  # Clears the file
+    with open("static/tasks.json", "w", encoding="utf-8") as file:
+        file.write(
+            """
+            {
+                "tasks": []
+            }
+            """
+        )
 
 # Logs chat messages with proper formatting and maintains a 10-message history
 def log(message, user=None, file_path=r"static/logs.txt"):
