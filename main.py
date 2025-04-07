@@ -45,8 +45,8 @@ def getlog(file_path=r"static/logs.txt"):
 def clear_log(file_path=r"static/logs.txt"):
     with open(file_path, "w", encoding="utf-8") as file:
         file.truncate() 
-    with open("static/tasks.json", "w", encoding="utf-8") as file:
-        json.dump({"tasks": []}, file, indent=4)
+    # with open("static/tasks.json", "w", encoding="utf-8") as file:
+    #     json.dump({"tasks": []}, file, indent=4)
 
 # Logs chat messages with proper formatting and maintains a 10-message history
 def log(message, user=None, file_path=r"static/logs.txt"):
@@ -160,7 +160,57 @@ def start_typing(channel_id):
         "Content-Type": "application/json"
     }
     requests.post(url, headers=headers)
+# def load_tasks(file_path=r"static/tasks.json"):
+#     try:
+#         with open(file_path, "r") as file:
+#             content = file.read()
+#             if not content.strip():
+#                 return {"tasks": []}
+#             return json.loads(content)
+#     except (FileNotFoundError, json.JSONDecodeError):
+#         return {"tasks": []}
 
+# # Task execution function
+# def execute_tasks():
+#     while True:
+#         try:
+#             tasks = load_tasks()
+#             current_time = time.time()
+            
+#             for task in tasks['tasks']:
+#                 if current_time - task.get('last_run', 0) >= task['interval_seconds']:
+#                     # Execute task directly
+#                     try:
+#                         bot.sendMessage(task['channel_id'], task['cmd'])
+#                         print(f"Task executed successfully: {task['cmd']}")
+#                         # Update last run time after successful execution
+#                         task['last_run'] = current_time
+#                         save_tasks(tasks)
+#                     except Exception as e:
+#                         print(f"Failed to execute task: {e}")
+#                         continue
+                    
+#             time.sleep(1)  # Check tasks every second
+#         except Exception as e:
+#             print(f"Task scheduler error: {e}")
+#             time.sleep(1)
+
+# # Save tasks to JSON file
+# def save_tasks(tasks, file_path=r"static/tasks.json"):
+#     with open(file_path, "w") as file:
+#         json.dump(tasks, file, indent=4)
+
+# # Convert time string to seconds
+# def parse_time_interval(interval):
+#     units = {
+#         's': 1,
+#         'm': 60,
+#         'h': 3600,
+#         'd': 86400
+#     }
+#     value = int(''.join(filter(str.isdigit, interval)))
+#     unit = ''.join(filter(str.isalpha, interval.lower()))[0]
+#     return value * units.get(unit, 1)
 # Function to handle events
 @bot.gateway.command
 def handle_events(resp):
@@ -169,68 +219,11 @@ def handle_events(resp):
         user = bot.gateway.session.user
         print(f"Logged in as {user['username']}#{user['discriminator']}")
 
-    # Check for new messages
-    
-    # Load tasks from JSON file
-    # In load_tasks function
-    def load_tasks(file_path=r"static/tasks.json"):
-        try:
-            with open(file_path, "r") as file:
-                content = file.read()
-                if not content.strip():
-                    return {"tasks": []}
-                return json.loads(content)
-        except (FileNotFoundError, json.JSONDecodeError):
-            return {"tasks": []}
-    
-    # Task execution function
-    def execute_tasks():
-        while True:
-            try:
-                tasks = load_tasks()
-                current_time = time.time()
-                
-                for task in tasks['tasks']:
-                    if current_time - task.get('last_run', 0) >= task['interval_seconds']:
-                        # Execute task directly
-                        try:
-                            bot.sendMessage(task['channel_id'], task['cmd'])
-                            print(f"Task executed successfully: {task['cmd']}")
-                            # Update last run time after successful execution
-                            task['last_run'] = current_time
-                            save_tasks(tasks)
-                        except Exception as e:
-                            print(f"Failed to execute task: {e}")
-                            continue
-                        
-                time.sleep(1)  # Check tasks every second
-            except Exception as e:
-                print(f"Task scheduler error: {e}")
-                time.sleep(1)
-    
-    # Save tasks to JSON file
-    def save_tasks(tasks, file_path=r"static/tasks.json"):
-        with open(file_path, "w") as file:
-            json.dump(tasks, file, indent=4)
-    
-    # Convert time string to seconds
-    def parse_time_interval(interval):
-        units = {
-            's': 1,
-            'm': 60,
-            'h': 3600,
-            'd': 86400
-        }
-        value = int(''.join(filter(str.isdigit, interval)))
-        unit = ''.join(filter(str.isalpha, interval.lower()))[0]
-        return value * units.get(unit, 1)
-    
-    # Lock for task operations
-    task_lock = threading.Lock()
+    # task_lock = threading.Lock()
 
-    # Start task execution thread
-    task_thread = threading.Thread(target=execute_tasks, daemon=True)
-    task_thread.start()
+    # # Start task execution thread
+    # task_thread = threading.Thread(target=execute_tasks, daemon=True)
+    # task_thread.start()
 
     if resp.event.message:
         message = resp.parsed.auto()
@@ -273,97 +266,97 @@ def handle_events(resp):
             )
             return
         
-        if content.startswith(">prg") and user_id == "867447725230784552":
-            try:
-                # Extract the number of messages to purge
-                parts = content.split()
-                if len(parts) != 2 or not parts[1].isdigit():
-                    bot.reply(
-                        channelID=channel_id,
-                        messageID=message_id,
-                        message="❌ Invalid format! Use >prg [number]"
-                    )
-                    return
+        # if content.startswith(">prg") and user_id == "867447725230784552":
+        #     try:
+        #         # Extract the number of messages to purge
+        #         parts = content.split()
+        #         if len(parts) != 2 or not parts[1].isdigit():
+        #             bot.reply(
+        #                 channelID=channel_id,
+        #                 messageID=message_id,
+        #                 message="❌ Invalid format! Use >prg [number]"
+        #             )
+        #             return
                 
-                num_messages = int(parts[1])
-                if num_messages <= 0 or num_messages > 100:
-                    bot.reply(
-                        channelID=channel_id,
-                        messageID=message_id,
-                        message="❌ Please specify a number between 1 and 100"
-                    )
-                    return
+        #         num_messages = int(parts[1])
+        #         if num_messages <= 0 or num_messages > 100:
+        #             bot.reply(
+        #                 channelID=channel_id,
+        #                 messageID=message_id,
+        #                 message="❌ Please specify a number between 1 and 100"
+        #             )
+        #             return
                 
-                # Start typing indicator to show activity
-                start_typing(channel_id)
+        #         # Start typing indicator to show activity
+        #         start_typing(channel_id)
                 
-                # Fetch messages from the channel
-                messages = bot.getMessages(channel_id, limit=100).json()
+        #         # Fetch messages from the channel
+        #         messages = bot.getMessages(channel_id, limit=100).json()
                 
-                # Filter for bot's messages only
-                bot_messages = [msg for msg in messages if msg['author']['id'] == bot_user_id]
+        #         # Filter for bot's messages only
+        #         bot_messages = [msg for msg in messages if msg['author']['id'] == bot_user_id]
                 
-                # Limit to the requested number
-                messages_to_delete = bot_messages[:min(num_messages, len(bot_messages))]
+        #         # Limit to the requested number
+        #         messages_to_delete = bot_messages[:min(num_messages, len(bot_messages))]
                 
-                # Delete each message
-                deleted_count = 0
-                for msg in messages_to_delete:
-                    try:
-                        bot.deleteMessage(channel_id, msg['id'])
-                        deleted_count += 1
-                        time.sleep(0.5)  # Slight delay to avoid rate limits
-                    except Exception as e:
-                        print(f"Failed to delete message: {e}")
+        #         # Delete each message
+        #         deleted_count = 0
+        #         for msg in messages_to_delete:
+        #             try:
+        #                 bot.deleteMessage(channel_id, msg['id'])
+        #                 deleted_count += 1
+        #                 time.sleep(0.5)  # Slight delay to avoid rate limits
+        #             except Exception as e:
+        #                 print(f"Failed to delete message: {e}")
                 
-                # Send confirmation
-                bot.reply(
-                    channelID=channel_id,
-                    messageID=message_id,
-                    message=f"✅ Deleted {deleted_count} message(s)"
-                )
+        #         # Send confirmation
+        #         bot.reply(
+        #             channelID=channel_id,
+        #             messageID=message_id,
+        #             message=f"✅ Deleted {deleted_count} message(s)"
+        #         )
                 
-            except Exception as e:
-                bot.reply(
-                    channelID=channel_id,
-                    messageID=message_id,
-                    message=f"❌ Error: {str(e)}"
-                )
-            return
+        #     except Exception as e:
+        #         bot.reply(
+        #             channelID=channel_id,
+        #             messageID=message_id,
+        #             message=f"❌ Error: {str(e)}"
+        #         )
+        #     return
         
-        if content.startswith(">task") and user_id == "867447725230784552":
-            try:
-                start_typing(channel_id)
-                # Parse command parameters
-                params = dict(param.split(":") for param in content.split()[1:])
-                cmd = params.get("cmd", "")
-                channel_id = params.get("channel", "")
-                interval = params.get("time", "")
+        # if content.startswith(">task") and user_id == "867447725230784552":
+        #     try:
+        #         start_typing(channel_id)
+        #         # Parse command parameters
+        #         params = dict(param.split(":") for param in content.split()[1:])
+        #         cmd = params.get("cmd", "")
+        #         channel_id = params.get("channel", "")
+        #         interval = params.get("time", "")
                 
-                if not all([cmd, channel_id, interval]):
-                    bot.sendMessage(channel_id, "❌ Invalid command format! Use >task cmd:(command) channel:(id) time:(interval)")
-                    return
+        #         if not all([cmd, channel_id, interval]):
+        #             bot.sendMessage(channel_id, "❌ Invalid command format! Use >task cmd:(command) channel:(id) time:(interval)")
+        #             return
                 
-                # Load existing tasks
-                tasks = load_tasks()
+        #         # Load existing tasks
+        #         tasks = load_tasks()
                 
-                # Create new task with initial last_run set to epoch
-                new_task = {
-                    "cmd": cmd,
-                    "channel_id": channel_id,
-                    "interval": interval,
-                    "interval_seconds": parse_time_interval(interval),
-                    "last_run": 0  # Initialize with 0 to trigger immediate execution
-                }
+        #         # Create new task with initial last_run set to epoch
+        #         new_task = {
+        #             "cmd": cmd,
+        #             "channel_id": channel_id,
+        #             "interval": interval,
+        #             "interval_seconds": parse_time_interval(interval),
+        #             "last_run": 0  # Initialize with 0 to trigger immediate execution
+        #         }
                 
-                # Add task to list
-                tasks['tasks'].append(new_task)
-                save_tasks(tasks)
+        #         # Add task to list
+        #         tasks['tasks'].append(new_task)
+        #         save_tasks(tasks)
                 
-                bot.sendMessage(channel_id, f"✅ Task scheduled! Command: {cmd} will run every {interval}")
-            except Exception as e:
-                bot.sendMessage(channel_id, f"❌ Error creating task: {str(e)}")
-            return
+        #         bot.sendMessage(channel_id, f"✅ Task scheduled! Command: {cmd} will run every {interval}")
+        #     except Exception as e:
+        #         bot.sendMessage(channel_id, f"❌ Error creating task: {str(e)}")
+        #     return
 
 
         # Check if the message is a reply to the bot's message
