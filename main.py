@@ -254,6 +254,11 @@ def handle_events(resp):
         if content.startswith(">clm"):
             clear_log()
             print("CLEARED!")
+            bot.reply(
+                channelID=channel_id,
+                messageID=message_id,
+                message=f"CLEARED!",
+            )
             return
         
         if content.startswith(">up"):
