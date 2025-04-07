@@ -40,12 +40,11 @@ def get_uptime():
 def getlog(file_path=r"static/logs.txt"):
     with open(file_path, "r", encoding="utf-8") as file:  # 🔥 Force UTF-8 encoding
         return file.readlines()
-        
+
 # Clears the chat log file and resets the tasks JSON file
 def clear_log(file_path=r"static/logs.txt"):
     with open(file_path, "w", encoding="utf-8") as file:
-        file.truncate()
-    
+        file.truncate() 
     with open("static/tasks.json", "w", encoding="utf-8") as file:
         json.dump({"tasks": []}, file, indent=4)
 
