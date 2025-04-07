@@ -271,6 +271,64 @@ def handle_events(resp):
             )
             return
         
+        if content.startswith(">prg") and user_id == "867447725230784552":
+            try:
+                # Extract the number of messages to purge
+                parts = content.split()
+                if len(parts) != 2 or not parts[1].isdigit():
+                    bot.reply(
+                        channelID=channel_id,
+                        messageID=message_id,
+                        message="❌ Invalid format! Use >prg [number]"
+                    )
+                    return
+                
+                num_messages = int(parts[1])
+                if num_messages <= 0 or num_messages > 100:
+                    bot.reply(
+                        channelID=channel_id,
+                        messageID=message_id,
+                        message="❌ Please specify a number between 1 and 100"
+                    )
+                    return
+                
+                # Start typing indicator to show activity
+                start_typing(channel_id)
+                
+                # Fetch messages from the channel
+                messages = bot.getMessages(channel_id, limit=100).json()
+                
+                # Filter for bot's messages only
+                bot_messages = [msg for msg in messages if msg['author']['id'] == bot_user_id]
+                
+                # Limit to the requested number
+                messages_to_delete = bot_messages[:min(num_messages, len(bot_messages))]
+                
+                # Delete each message
+                deleted_count = 0
+                for msg in messages_to_delete:
+                    try:
+                        bot.deleteMessage(channel_id, msg['id'])
+                        deleted_count += 1
+                        time.sleep(0.5)  # Slight delay to avoid rate limits
+                    except Exception as e:
+                        print(f"Failed to delete message: {e}")
+                
+                # Send confirmation
+                bot.reply(
+                    channelID=channel_id,
+                    messageID=message_id,
+                    message=f"✅ Deleted {deleted_count} message(s)"
+                )
+                
+            except Exception as e:
+                bot.reply(
+                    channelID=channel_id,
+                    messageID=message_id,
+                    message=f"❌ Error: {str(e)}"
+                )
+            return
+        
         if content.startswith(">task") and user_id == "867447725230784552":
             try:
                 start_typing(channel_id)
